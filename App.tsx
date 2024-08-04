@@ -1,118 +1,137 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import { ScrollView, StyleSheet, Text, View, TextInput, TouchableOpacity, Keyboard, KeyboardAvoidingView } from 'react-native'
+import React, { useState, PropsWithChildren } from 'react'
+import { currencyData } from './public/currencyData.ts';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+export default function App() {
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  const [amount, setAmount] = useState('0');
+  const[isAmountConverted, setIsAmountConverted] = useState(false);
+  const[convertedAmount, setConvertedAmount] = useState('0');
+ 
+  type currencyBtnProps = PropsWithChildren<{
+    currencyName: string,
+    countryFlag: string,
+    conversionRateToINR: number,
+    symbol: string
+  }>
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+  const handleSubmit = (conversionRate: number, symbol: string) => {
+    if (amount === '' || isNaN(Number(amount))) {
+      setConvertedAmount('0');
+      setIsAmountConverted(true);
+      return;
+    }
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+    const tempAmount = (+amount / conversionRate).toFixed(2);
+    setConvertedAmount(`${symbol} ${tempAmount}`);
+    setIsAmountConverted(true);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  }
+
+  const CurrencyButton = ({ currencyName, countryFlag, conversionRateToINR, symbol}: currencyBtnProps): JSX.Element => {
+    return (
+      <TouchableOpacity style={styles.currencyBtn} onPress={() => handleSubmit(conversionRateToINR, symbol)}>
+        <Text style={styles.countryFlag}>{countryFlag}</Text>
+        <Text style={styles.currencyName}>{currencyName}</Text>
+      </TouchableOpacity>
+    )
+  }
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+    <ScrollView  contentContainerStyle={styles.container}>
+    {
+      isAmountConverted ? (
+        <View>
+          <Text style={styles.convertedAmount}>{convertedAmount} 🤑</Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+      ): 
+      null
+    }
+
+      <View style={styles.inputForm}>
+        <Text style={styles.rupeeSign}>₹</Text>
+        <TextInput onChangeText={setAmount} style={styles.amountInput} keyboardType='numeric' />
+      </View>
+      <View style={styles.currencyBtnContainer}>
+        {
+          currencyData.map((currency: any, index: number): JSX.Element => (
+            <CurrencyButton key={index} {...currency}/>
+          ))
+        }
+      </View>
+  
+    </ScrollView>
+
+  )
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+  container: {
+    backgroundColor: "black",
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
+    gap: 50
 
-export default App;
+  },
+  
+  convertedAmount: {
+    fontSize: 30,
+    color: "white"
+  },
+
+  inputForm: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: "row",
+    gap: 10,
+
+  },
+
+  rupeeSign: {
+    fontSize: 30,
+    color: "white"
+  },
+
+  amountInput: {
+    backgroundColor: "white",
+    color: "black",
+    width: 200,
+    fontSize: 20,
+    borderRadius: 10
+  },
+
+  currencyBtnContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: 'center',
+    alignItems: "center",
+    gap: 20,
+  },
+
+  currencyBtn: {
+    backgroundColor: "white",
+    width: 110,
+    height: 80,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+
+
+  },
+
+
+  countryFlag: {
+    fontSize: 32
+  },
+
+  currencyName: {
+    color: "black",
+    textTransform: 'uppercase',
+    textAlign: "center",
+    fontSize: 12
+
+  }
+})
